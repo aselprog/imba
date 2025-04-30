@@ -2,7 +2,7 @@
 <html lang="sw">
 <head>
   <meta charset="UTF-8">
-  <title>Speech to Text - Kiswahili</title>
+  <title>ASEL PROJECTOR</title>
   <style>
     body {
       margin: 0;
@@ -15,6 +15,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      position: relative;
     }
 
     #startBtn {
@@ -54,6 +55,63 @@
         font-size: 28px;
       }
     }
+
+    .custom-menu {
+      position: absolute;
+      background-color: #1e1e1e;
+      border: 1px solid #444;
+      border-radius: 5px;
+      display: none;
+      z-index: 2000;
+      min-width: 260px;
+    }
+
+    .custom-menu-item {
+      padding: 10px 15px;
+      cursor: pointer;
+      color: #fff;
+      border-bottom: 1px solid #333;
+      position: relative;
+    }
+
+    .custom-menu-item:last-child {
+      border-bottom: none;
+    }
+
+    .custom-menu-item:hover {
+      background-color: #007bff;
+    }
+
+    .submenu {
+      display: none;
+      position: absolute;
+      left: 100%;
+      top: 0;
+      background-color: #1e1e1e;
+      border: 1px solid #444;
+      border-radius: 5px;
+      min-width: 250px;
+      z-index: 2001;
+    }
+
+    .custom-menu-item:hover .submenu {
+      display: block;
+    }
+
+    .submenu-item {
+      padding: 10px 15px;
+      cursor: pointer;
+      color: #fff;
+      border-bottom: 1px solid #333;
+    }
+
+    .submenu-item:last-child {
+      border-bottom: none;
+    }
+
+    .submenu-item:hover {
+      background-color: #007bff;
+    }
   </style>
 </head>
 <body>
@@ -61,17 +119,32 @@
   <button id="startBtn">Anza Kusikiliza</button>
   <div id="textDisplay">Maandishi yataonekana hapa ukianza kuimba...</div>
 
+  <div id="contextMenu" class="custom-menu">
+    <div class="custom-menu-item">
+      Fullscreen Projector (Program)
+      <div class="submenu">
+        <div class="submenu-item" onclick="projectFullscreen()">\\\\DISPLAY1: 1920x1080 @ 0,0</div>
+      </div>
+    </div>
+    <div class="custom-menu-item" onclick="windowedProjector()">Windowed Projector (Program)</div>
+    <div class="custom-menu-item" onclick="takeScreenshot()">Screenshot (Program)</div>
+  </div>
+
   <script>
     const startBtn = document.getElementById('startBtn');
     const textDisplay = document.getElementById('textDisplay');
+    const contextMenu = document.getElementById('contextMenu');
 
     let recognition;
     let isListening = false;
+    let popup = null;
+    let projectorDiv = null;
 
+    // Speech recognition setup
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       recognition = new SpeechRecognition();
-      recognition.lang = 'sw-TZ'; // Kiswahili Tanzania
+      recognition.lang = 'sw-TZ';
       recognition.continuous = true;
       recognition.interimResults = true;
 
@@ -81,19 +154,22 @@
           transcript += event.results[i][0].transcript;
         }
         textDisplay.textContent = transcript;
+
+        // Update projector if available
+        if (popup && !popup.closed && projectorDiv) {
+          projectorDiv.textContent = transcript;
+        }
       };
 
       recognition.onend = () => {
-        if (isListening) {
-          recognition.start(); // Ended? Start again
-        }
+        if (isListening) recognition.start();
       };
 
       recognition.onerror = (event) => {
         console.error('Kosa:', event.error);
         if (isListening) {
           recognition.stop();
-          recognition.start(); // Restart on error
+          recognition.start();
         }
       };
     } else {
@@ -115,6 +191,52 @@
         textDisplay.textContent = "Maandishi yataonekana hapa ukianza kuimba...";
       }
     });
+
+    // Context menu behavior
+    window.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      contextMenu.style.top = `${e.clientY}px`;
+      contextMenu.style.left = `${e.clientX}px`;
+      contextMenu.style.display = 'block';
+    });
+
+    window.addEventListener('click', () => {
+      contextMenu.style.display = 'none';
+    });
+
+    // Projector Functions
+    function projectFullscreen() {
+      const element = document.documentElement;
+      if (element.requestFullscreen) {
+        element.requestFullscreen();
+      } else if (element.webkitRequestFullscreen) {
+        element.webkitRequestFullscreen();
+      } else if (element.msRequestFullscreen) {
+        element.msRequestFullscreen();
+      }
+    }
+
+    function windowedProjector() {
+      popup = window.open("", "ASEL_PROJECTOR", "width=800,height=600,menubar=no,toolbar=no");
+      popup.document.write(`
+        <html>
+        <head><title>ASEL PROJECTOR</title></head>
+        <body style="background:black; color:white; display:flex; align-items:center; justify-content:center; height:100vh; font-size:24px; margin:0;">
+          <div id="projectorText">ASEL PROJECTOR imefunguliwa</div>
+        </body>
+        </html>
+      `);
+      popup.onload = () => {
+        projectorDiv = popup.document.getElementById("projectorText");
+        if (projectorDiv && textDisplay.textContent) {
+          projectorDiv.textContent = textDisplay.textContent;
+        }
+      };
+    }
+
+    function takeScreenshot() {
+      alert("Screenshot feature bado haijatekelezwa.");
+    }
   </script>
 
 </body>
