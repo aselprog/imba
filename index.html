@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+  <meta charset="UTF-8">
+  <title>Speech to Text - Kiswahili</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    #textDisplay {
+      width: 90%;
+      max-width: 600px;
+      height: 250px;
+      border: 2px solid #333;
+      background: #fff;
+      padding: 15px;
+      margin-top: 20px;
+      font-size: 18px;
+      overflow-y: auto;
+    }
+
+    #startBtn {
+      padding: 12px 25px;
+      font-size: 16px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+
+    #startBtn.listening {
+      background: #dc3545;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Speech to Text (Kiswahili)</h1>
+  <button id="startBtn">Anza Kusikiliza</button>
+  <div id="textDisplay"></div>
+
+  <script>
+    const startBtn = document.getElementById('startBtn');
+    const textDisplay = document.getElementById('textDisplay');
+
+    let recognition;
+    let isListening = false;
+
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SpeechRecognition();
+      recognition.lang = 'sw-TZ'; // Kiswahili Tanzania
+      recognition.continuous = true;
+      recognition.interimResults = true;
+
+      recognition.onresult = (event) => {
+        let transcript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript;
+        }
+        textDisplay.textContent = transcript;
+      };
+
+      recognition.onend = () => {
+        if (isListening) {
+          recognition.start(); // Auto-restart if user is still listening
+        }
+      };
+
+      recognition.onerror = (event) => {
+        console.error('Kosa:', event.error);
+        if (isListening) {
+          recognition.stop();
+          recognition.start(); // Try restarting on error
+        }
+      };
+
+    } else {
+      alert("Samahani, browser yako haiungi mkono Speech Recognition.");
+    }
+
+    startBtn.addEventListener('click', () => {
+      if (!isListening) {
+        recognition.start();
+        startBtn.textContent = "Zima Kusikiliza";
+        startBtn.classList.add('listening');
+        isListening = true;
+      } else {
+        recognition.stop();
+        startBtn.textContent = "Anza Kusikiliza";
+        startBtn.classList.remove('listening');
+        isListening = false;
+      }
+    });
+  </script>
+
+</body>
+</html>
