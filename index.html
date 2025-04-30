@@ -5,33 +5,22 @@
   <title>Speech to Text - Kiswahili</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #f2f2f2;
+      margin: 0;
+      padding: 0;
+      background: #000;
+      color: #fff;
+      font-family: 'Arial', sans-serif;
+      height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100vh;
-      margin: 0;
-    }
-
-    h1 {
-      color: #333;
-    }
-
-    #textDisplay {
-      width: 90%;
-      max-width: 600px;
-      height: 250px;
-      border: 2px solid #333;
-      background: #fff;
-      padding: 15px;
-      margin-top: 20px;
-      font-size: 18px;
-      overflow-y: auto;
     }
 
     #startBtn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
       padding: 12px 25px;
       font-size: 16px;
       background: #007bff;
@@ -39,19 +28,38 @@
       border: none;
       border-radius: 5px;
       cursor: pointer;
-      margin-top: 20px;
+      z-index: 1000;
     }
 
     #startBtn.listening {
       background: #dc3545;
     }
+
+    #textDisplay {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      text-align: center;
+      font-size: 36px;
+      line-height: 1.5;
+      color: white;
+      background-color: black;
+    }
+
+    @media (max-width: 600px) {
+      #textDisplay {
+        font-size: 28px;
+      }
+    }
   </style>
 </head>
 <body>
 
-  <h1>Speech to Text (Kiswahili)</h1>
   <button id="startBtn">Anza Kusikiliza</button>
-  <div id="textDisplay"></div>
+  <div id="textDisplay">Maandishi yataonekana hapa ukianza kuimba...</div>
 
   <script>
     const startBtn = document.getElementById('startBtn');
@@ -77,7 +85,7 @@
 
       recognition.onend = () => {
         if (isListening) {
-          recognition.start(); // Auto-restart if user is still listening
+          recognition.start(); // Ended? Start again
         }
       };
 
@@ -85,10 +93,9 @@
         console.error('Kosa:', event.error);
         if (isListening) {
           recognition.stop();
-          recognition.start(); // Try restarting on error
+          recognition.start(); // Restart on error
         }
       };
-
     } else {
       alert("Samahani, browser yako haiungi mkono Speech Recognition.");
     }
@@ -99,11 +106,13 @@
         startBtn.textContent = "Zima Kusikiliza";
         startBtn.classList.add('listening');
         isListening = true;
+        textDisplay.textContent = "Inasubiri sauti yako...";
       } else {
         recognition.stop();
         startBtn.textContent = "Anza Kusikiliza";
         startBtn.classList.remove('listening');
         isListening = false;
+        textDisplay.textContent = "Maandishi yataonekana hapa ukianza kuimba...";
       }
     });
   </script>
